@@ -10,13 +10,10 @@ class iGyneNeedleTracking:
     import string
     parent.title = "Neddle Tracking"
     parent.categories = ["Gyne IGT"]
-    parent.contributors = ["AM, GP, TK, JE,..."]
-    parent.helpText = string.Template("""
-    Create a path model as a spline interpolation of a set of fiducial points. See <a href=\"$a/Documentation/$b.$c/Modules/Endoscopy\">$a/Documentation/$b.$c/Modules/Endoscopy</a> for more information.\n\nPick the Camera to be modified by the path and the Fiducial List defining the control points.  Clicking Apply will bring up the flythrough panel.\n\nYou can manually scroll though the path with the Frame slider.\n\nThe Play/Pause button toggles animated flythrough.\n\nThe Frame Skip slider speeds up the animation by skipping points on the path.\n\nThe Frame Delay slider slows down the animation by adding more time between frames.\n\nThe View Angle provides is used to approximate the optics of an endoscopy system.\n\nThe Close button dismisses the flyrhough panel and stops the animation.
-    """).substitute({ 'a':parent.slicerWikiUrl, 'b':slicer.app.majorVersion, 'c':slicer.app.minorVersion })
+    parent.contributors = ["Alireza Mehrtash"]
+    parent.helpText = string.Template("""  """)
     parent.acknowledgementText = """
-    This work is supported by PAR-07-249: R01CA131718 NA-MIC Virtual Colonoscopy (See <a>http://www.na-mic.org/Wiki/index.php/NA-MIC_NCBC_Collaboration:NA-MIC_virtual_colonoscopy</a>) NA-MIC, NAC, BIRN, NCIGT, and the Slicer Community. See http://www.slicer.org for details.  Module implemented by Steve Pieper.
-    """
+     """
     self.parent = parent
 
 #
@@ -34,11 +31,9 @@ class iGyneNeedleTrackingWidget:
     self.layout = self.parent.layout()
     if not parent:
       self.setup()
-      #self.cameraNodeSelector.setMRMLScene(slicer.mrmlScene)
-      #self.inputFiducialsNodeSelector.setMRMLScene(slicer.mrmlScene)
       self.parent.show()
 
-  # variables
+  # Module Variables
     self.timer = qt.QTimer()
     self.timer.setInterval(20)
     self.timer.connect('timeout()', self.doSomething)
@@ -50,48 +45,49 @@ class iGyneNeedleTrackingWidget:
     self.minimumDistanceBetweenSeperatePoints = 2 
     #self.n = 48
     #self.p = numpy.zeros((self.n,3))
+
     # 10 mm offset for template widt
     self.templateWidth = -10   
 
   def setup(self):
+    # Start tracking colllapsible button
     startTrackingCollapsibleButton = ctk.ctkCollapsibleButton()
     startTrackingCollapsibleButton.text = "Gynecological Brachytherapy IGT"
     self.layout.addWidget(startTrackingCollapsibleButton)
     
-    # Layout within the point collection collapsible button
+    # Layout within the tracking settings collapsible button
     startTrackingFormLayout = qt.QFormLayout(startTrackingCollapsibleButton)
 
-    # Bold and large font for Needle Label
+    # Bold and large font for needle label
     largeFont = qt.QFont()
     largeFont.setBold(True)
     largeFont.setPixelSize(30)
    
     # Template node selector
     templateLabel = qt.QLabel( 'Template:' )
-    self.templateSelector = slicer.qMRMLNodeComboBox()
-    self.templateSelector.toolTip = "Choose the template model"
-    self.templateSelector.nodeTypes = ['vtkMRMLModelNode']
-    self.templateSelector.setMRMLScene(slicer.mrmlScene)
-    self.templateSelector.addEnabled = False
-    self.templateSelector.noneEnabled= True
-    self.templateSelector.removeEnabled= False
-    self.templateSelector.connect('currentNodeChanged(bool)', self.enableOrDisableStartTrackingButton)
-    startTrackingFormLayout.addRow( templateLabel, self.templateSelector)
+    templateSelector = slicer.qMRMLNodeComboBox()
+    templateSelector.toolTip = "Choose the template model"
+    templateSelector.nodeTypes = ['vtkMRMLModelNode']
+    templateSelector.setMRMLScene(slicer.mrmlScene)
+    templateSelector.addEnabled = False
+    templateSelector.noneEnabled= True
+    templateSelector.removeEnabled= False
+    templateSelector.connect('currentNodeChanged(bool)', self.enableOrDisableStartTrackingButton)
+    startTrackingFormLayout.addRow( templateLabel, templateSelector)
     #stylusTrackerLabel.setText('a')
     #stylusTrackerLabel.setFont( largeFont )
 
-
     # Stylus tracker transform node selector
     stylusTrackerLabel = qt.QLabel( 'Stylus:' )
-    self.stylusTrackerSelector = slicer.qMRMLNodeComboBox()
-    self.stylusTrackerSelector.toolTip = "Choose the followup scan"
-    self.stylusTrackerSelector.nodeTypes = ['vtkMRMLTransformNode']
-    self.stylusTrackerSelector.setMRMLScene(slicer.mrmlScene)
-    self.stylusTrackerSelector.addEnabled = False
-    self.stylusTrackerSelector.noneEnabled= True
-    self.stylusTrackerSelector.removeEnabled= False
-    self.stylusTrackerSelector.connect('currentNodeChanged(bool)', self.enableOrDisableStartTrackingButton)
-    startTrackingFormLayout.addRow( stylusTrackerLabel, self.stylusTrackerSelector )
+    stylusTrackerSelector = slicer.qMRMLNodeComboBox()
+    stylusTrackerSelector.toolTip = "Choose the followup scan"
+    stylusTrackerSelector.nodeTypes = ['vtkMRMLTransformNode']
+    stylusTrackerSelector.setMRMLScene(slicer.mrmlScene)
+    stylusTrackerSelector.addEnabled = False
+    stylusTrackerSelector.noneEnabled= True
+    stylusTrackerSelector.removeEnabled= False
+    stylusTrackerSelector.connect('currentNodeChanged(bool)', self.enableOrDisableStartTrackingButton)
+    startTrackingFormLayout.addRow( stylusTrackerLabel, stylusTrackerSelector )
     #stylusTrackerLabel.setText('a')
     #stylusTrackerLabel.setFont( largeFont )
 
@@ -107,7 +103,6 @@ class iGyneNeedleTrackingWidget:
     startTrackingFormLayout.addRow("Template Holes:", inputFiducialsNodeSelector)
     self.parent.connect('mrmlSceneChanged(vtkMRMLScene*)', 
                         inputFiducialsNodeSelector, 'setMRMLScene(vtkMRMLScene*)')
-    self.inputFiducialsNodeSelector = inputFiducialsNodeSelector 
 
     # Start Tracking Button
     startTrackingButton = qt.QPushButton("Start Procedure")
@@ -116,7 +111,6 @@ class iGyneNeedleTrackingWidget:
     startTrackingButton.checkable = True
     startTrackingFormLayout.addRow( startTrackingButton)
     startTrackingButton.connect('toggled(bool)', self.onStartTrackingButtonClicked)
-    self.startTrackingButton = startTrackingButton
 
     # DrawNeedle 
     drawNeedleButton = qt.QPushButton(" Record Track")
@@ -125,28 +119,24 @@ class iGyneNeedleTrackingWidget:
     drawNeedleButton.checkable = False 
     startTrackingFormLayout.addRow( drawNeedleButton )
     drawNeedleButton.connect('clicked()', self.onDrawNeedleButtonClicked)
-    self.drawNeedleButton = drawNeedleButton
 
-
-    
+    # Needle status collapsible button
     needleStatusCollapsibleButton = ctk.ctkCollapsibleButton()
     needleStatusCollapsibleButton.text = "Needle Status"
     self.layout.addWidget(needleStatusCollapsibleButton)
- 
- 
+
+    # Layout withn the needle status collapsible button
     needleStatusFormLayout = qt.QFormLayout(needleStatusCollapsibleButton)
  
     # Needle Status QLine 
     needleInOutLabel= qt.QLabel('Out')
     #status.setMaxLength(2)
     needleStatusFormLayout.addRow('Needle Status: ', needleInOutLabel)
-    self.needleInOutLabel= needleInOutLabel 
 
   # Error Status QLine 
     errorStatus = qt.QLabel('N/A')
     #errorStatus.text="0.00"
     needleStatusFormLayout.addRow('Registration Error:', errorStatus)
-    self.errorStatus= errorStatus
 
   # Needle Status QLine 
     status = qt.QLabel('')
@@ -154,34 +144,33 @@ class iGyneNeedleTrackingWidget:
     #status.setMaxLength(2)
     status.setFont(largeFont)
     needleStatusFormLayout.addRow(status)
-    self.status= status
-
-    ######################
+    
+    # Slicer MRML and Slicer annotation module
     self.scene = slicer.mrmlScene
     self.logic = slicer.modules.annotations.logic()
-    #self.logic.AddHierarchy
-    # a=self.logic.GetActiveHierarchyNode()
-    # a.SetName('Template Fiducials')
     
- 
+    # Set local var as instance attribute
+    self.templateSelector = templateSelector
+    self.stylusTrackerSelector = stylusTrackerSelector
+    self.inputFiducialsNodeSelector = inputFiducialsNodeSelector 
+    self.startTrackingButton = startTrackingButton
+    self.drawNeedleButton = drawNeedleButton
+    self.needleInOutLabel= needleInOutLabel 
+    self.errorStatus= errorStatus
+    self.status= status
 
   def enableOrDisableStartTrackingButton(self):
-    """Connected to both the fiducial and camera node selector. It allows to 
-    enable or disable the 'create path' button."""
-    #self.startTrackingButton.enabled = self.stylusTrackerSelector.currentNode() != None and self.inputFiducialsNodeSelector.currentNode() != None and self.templateSelector.currentNode() != None 
+    """Connected to both the stylus tracker and input fiducial node selector. It allows to 
+    enable or disable the 'start procedure' button."""
 
     self.startTrackingButton.enabled = self.stylusTrackerSelector.currentNode() != None and self.inputFiducialsNodeSelector.currentNode() != None 
 
-
-
-
   def onStartTrackingButtonClicked(self,checked):
-    """Connected to 'create path' button. It allows to:
-      - compute the path
-      - create the associated model"""
+    """Connected to 'start procedure' button. It allows to:
+      - 
+      - """
     # Add the transform Node displacements
-    # fiducials are two slow!!! When I put the fiducials under the transform the system was awfully slow!!!!
-    # supports only for TWO transforms
+    # fiducials are two slow! When I put the fiducials under the transform the system was awfully slow!!!!
       
     if self.fiducialMatrixStatus == False:
       self.createFiducialMatrix()
@@ -204,10 +193,9 @@ class iGyneNeedleTrackingWidget:
     coordinateMatrix[:,1] = numpy.ones((1,self.n))*self.Coordinate[1]
     coordinateMatrix[:,2] = numpy.ones((1,self.n))*self.Coordinate[2]
 
-    
-    # change it later
     #print self.p
     #print self.Coordinate
+
     differenceMatrix = self.p - coordinateMatrix
     self.distanceVector = numpy.zeros((self.n,1)) 
     
@@ -245,15 +233,11 @@ class iGyneNeedleTrackingWidget:
           self.errorStatus.setText(registrationErrorText)
         else:
           self.errorStatus.setText('..')
-           
-
 
     #print needleIsInside
 
   def createFiducialMatrix(self):
     self.fiducialMatrixStatus = True
-
-
  
     # extracting the effects of transform parameters
     transformNode1 = self.templateSelector.currentNode().GetParentTransformNode()
@@ -268,17 +252,12 @@ class iGyneNeedleTrackingWidget:
       shiftTransform1 = [ m.GetElement(0,3), m.GetElement(1,3), m.GetElement(2,3) ]
       rotationTransform1 = [[m.GetElement(0,0), m.GetElement(0,1),m.GetElement(0,2)],[m.GetElement(1,0), m.GetElement(1,1),m.GetElement(1,2)],[m.GetElement(2,0), m.GetElement(2,1),m.GetElement(2,2)]]
 
-
-
-
     self.fids = self.inputFiducialsNodeSelector.currentNode();
     if self.fids.GetClassName() == "vtkMRMLAnnotationHierarchyNode":
     # slicer4 style hierarchy nodes
       collection = vtk.vtkCollection()
       self.fids.GetChildrenDisplayableNodes(collection)
       self.n = collection.GetNumberOfItems()
-
-
 
       if self.n == 0: 
         return
@@ -293,8 +272,6 @@ class iGyneNeedleTrackingWidget:
         coords = numpy.add(coords,[ 0, 0, self.templateWidth]) 
         print coords
         self.p[i] = numpy.add(numpy.dot(rotationTransform1,coords),shiftTransform1) 
-
-
   
   def readNeedleTipPosition(self):
     
@@ -367,27 +344,10 @@ class iGyneNeedleTrackingWidget:
          needleIsInside = True
     return needleIsInside
     
-    
     # Checking in or out
-
-  #def startNeedleRecordig(self):
-  # Check if this is the first time
-    
-
-  # if not make a dialogue box and ask for redoing, if yes clear and redo the recording
-
-  # Record Points
-    
-
-    #trajectoryRawData = numpy.ones((10,3))
-  
-  
-  
-    #return trajectoryRawData
   
   def createNeedleTrajectory(self,trajectoryRawData):
   # Filter Points, remove noise select the good points
-   
 
     #Remove the same Nodes
     numberOfRecordedPoints = len(trajectoryRawData)
@@ -430,19 +390,12 @@ class iGyneNeedleTrackingWidget:
     
     #print self.trajectory 
 
-
-
-
-
-
     # Remove near point in the way back
-
-    
 
     # Create New VTK line (model with name)
 
     #print 'traj calculated successfully' 
-  #create the fiducial points from the needle
+    #create the fiducial points from the needle
 
   def onDrawNeedleButtonClicked(self):
     
@@ -458,15 +411,9 @@ class iGyneNeedleTrackingWidget:
     slicer.app.processEvents(qt.QEventLoop.ExcludeUserInputEvents)
     self.progress.repaint()
    
-    # creat Fiducial list
-    #templateFiducialAnnotationList = slicer.vtkMRMLAnnotationHierarchyNode()
-    #templateFiducialAnnotationList.SetName(self.status.text)
-    #templateFiducialAnnotationList.SetHideFromEditors(0)
-    #templateFiducialAnnotationList.SetScene(self.scene)
-    #self.scene.AddNode(templateFiducialAnnotationList)
-    #self.logic.SetActiveHierarchyNodeID(templateFiducialAnnotationList.GetID()) 
     self.drawNeedleButton.enabled = False
     print 'Please wait drawing fiducials...'
+
     color = [random.randrange(50,100,1)/100,random.randrange(50,100,1)/100,random.randrange(50,100,1)/100]
     #color = [0,1,0]
     for i in xrange (len(self.trajectory)):
@@ -488,9 +435,6 @@ class iGyneNeedleTrackingWidget:
       textNode=fiducial.GetAnnotationTextDisplayNode()
       textNode.SetTextScale(1)
       textNode.SetColor(color)
-    
-
-
 
     self.progress.setValue(2)
     self.progress.repaint()
