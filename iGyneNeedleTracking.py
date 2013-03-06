@@ -10,7 +10,7 @@ class iGyneNeedleTracking:
     import string
     parent.title = "Neddle Tracking"
     parent.categories = ["Gyne IGT"]
-    parent.contributors = ["Alireza Mehrtash"]
+    parent.contributors = ["Alireza Mehrtash","Guillaume Pernelle","Xiaojun Chen","Yi Gao","Tina Kapur", "Jan Egger", "Carolina Vale"]
     parent.helpText = string.Template("""  """)
     parent.acknowledgementText = """
      """
